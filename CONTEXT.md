@@ -39,3 +39,11 @@ _Avoid_: Scale factor, reduction multiplier
 **Bit Density**:
 The average number of bits required to encode each source symbol ($\text{bits/byte}$).
 _Avoid_: Packing rate, density score
+
+**Compression Receipt**:
+The post-processing summary displaying output container path, exact byte reduction, and verification checksum.
+_Avoid_: Download alert, completion popup
+
+**Target Destination**:
+The filesystem directory selected to receive the generated `.ic` archive.
+_Avoid_: Download folder, save spot

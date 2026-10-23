@@ -89,13 +89,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     }
 
     if (!browser.empty()) {
-        // Launch isolated desktop application window
+        // Launch isolated desktop application window with full native app disguise
         std::wstring args = L"--app=\"" + fileUrl + L"\" "
-                            L"--window-size=1200,840 "
+                            L"--window-size=1240,820 "
                             L"--user-data-dir=\"" + profileDir + L"\" "
                             L"--no-first-run "
-                            L"--disable-features=Translate "
-                            L"--app-id=icompress-studio";
+                            L"--no-default-browser-check "
+                            L"--disable-features=Translate,OptimizationHints,MediaRouter "
+                            L"--disable-extensions "
+                            L"--disable-background-networking "
+                            L"--disable-sync "
+                            L"--disable-default-apps "
+                            L"--app-id=icompress-archiver";
 
         STARTUPINFOW si = { sizeof(si) };
         PROCESS_INFORMATION pi = { 0 };

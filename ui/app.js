@@ -1,6 +1,6 @@
 // ==========================================================================
-// iCompress Precision UI Controller
-// C++17 Lossless Architecture & Empirical Telemetry Engine
+// iCompress Desktop UI Controller
+// Native App Lockdown, Receipt UX & Empirical Telemetry Engine
 // ==========================================================================
 
 // Standard IEEE 802.3 32-bit CRC implementation
@@ -20,7 +20,7 @@ function calculateCRC32(uint8Array) {
   return (crc ^ 0xFFFFFFFF) >>> 0;
 }
 
-// Shannon Byte Entropy Calculator: H(X) = -sum(p * log2(p))
+// Shannon Byte Entropy: H(X) = -sum(p * log2(p))
 function calculateEntropy(uint8Array) {
   if (uint8Array.length === 0) return 0;
   const freq = new Uint32Array(256);
@@ -38,7 +38,7 @@ function calculateEntropy(uint8Array) {
   return entropy.toFixed(2);
 }
 
-// Byte size formatter
+// Byte size formatting
 function formatBytes(bytes) {
   if (bytes === 0) return '0 B';
   if (bytes < 1024) return bytes + ' B';
@@ -46,15 +46,17 @@ function formatBytes(bytes) {
   return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
 }
 
-// Application State
+// State Management
 const state = {
   mode: 'compress',
   currentFile: null,
   currentBuffer: null,
-  selectedCodec: 'deflate'
+  selectedCodec: 'deflate',
+  lastOutputLocation: '',
+  techSpecsVisible: false
 };
 
-// DOM Elements
+// DOM Cache
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 const browseBtn = document.getElementById('browseBtn');
@@ -64,16 +66,87 @@ const loadedFileName = document.getElementById('loadedFileName');
 const loadedFileSize = document.getElementById('loadedFileSize');
 const loadedFileEntropy = document.getElementById('loadedFileEntropy');
 const clearFileBtn = document.getElementById('clearFileBtn');
+const compressionReceipt = document.getElementById('compressionReceipt');
+const receiptFileName = document.getElementById('receiptFileName');
+const receiptFilePath = document.getElementById('receiptFilePath');
+const receiptDelta = document.getElementById('receiptDelta');
+const receiptReduction = document.getElementById('receiptReduction');
+const copyPathBtn = document.getElementById('copyPathBtn');
+const copyPathBtnText = document.getElementById('copyPathBtnText');
+const compressAnotherBtn = document.getElementById('compressAnotherBtn');
 const actionBtn = document.getElementById('actionBtn');
 const actionBtnText = document.getElementById('actionBtnText');
 const modeSelector = document.getElementById('modeSelector');
 const codecControlGroup = document.getElementById('codecControlGroup');
+const toggleTechSpecs = document.getElementById('toggleTechSpecs');
 const benchmarkBody = document.getElementById('benchmarkBody');
 const statSavings = document.getElementById('statSavings');
 const statRatio = document.getElementById('statRatio');
 const statIntegrity = document.getElementById('statIntegrity');
 
-// Initialize Mode Switcher
+// --------------------------------------------------------------------------
+// 1. Native App Lockdown (Hiding WebView Tells)
+// --------------------------------------------------------------------------
+
+// Disable right-click context menu
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  return false;
+});
+
+// Disable browser zoom (Ctrl + Wheel)
+document.addEventListener('wheel', (e) => {
+  if (e.ctrlKey) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+// Desktop Keyboard Shortcuts
+document.addEventListener('keydown', (e) => {
+  // Prevent F5 or Ctrl+R web reloads
+  if (e.key === 'F5' || (e.ctrlKey && e.key.toLowerCase() === 'r')) {
+    e.preventDefault();
+    return false;
+  }
+  // Prevent Ctrl + and Ctrl - zoom
+  if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
+    e.preventDefault();
+    return false;
+  }
+  // Ctrl+O: Open file picker
+  if (e.ctrlKey && e.key.toLowerCase() === 'o') {
+    e.preventDefault();
+    fileInput.click();
+    return false;
+  }
+  // Escape: Clear current file
+  if (e.key === 'Escape') {
+    if (state.currentBuffer) {
+      resetWorkbench();
+    }
+  }
+});
+
+// Prevent browser from navigating when dropping a file outside target
+window.addEventListener('dragover', (e) => e.preventDefault(), false);
+window.addEventListener('drop', (e) => e.preventDefault(), false);
+
+// --------------------------------------------------------------------------
+// 2. Technical Specs Toggle
+// --------------------------------------------------------------------------
+toggleTechSpecs.addEventListener('click', (e) => {
+  e.stopPropagation();
+  state.techSpecsVisible = !state.techSpecsVisible;
+  const specs = document.querySelectorAll('.codec-tech-spec');
+  specs.forEach(el => {
+    el.style.display = state.techSpecsVisible ? 'block' : 'none';
+  });
+  toggleTechSpecs.textContent = state.techSpecsVisible ? 'Hide Specs' : 'Show Specs';
+});
+
+// --------------------------------------------------------------------------
+// 3. Mode Switcher
+// --------------------------------------------------------------------------
 modeSelector.querySelectorAll('.slider-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     modeSelector.querySelectorAll('.slider-btn').forEach(b => {
@@ -92,21 +165,28 @@ function updateUIMode() {
     actionBtnText.textContent = 'Compress to .ic Archive';
     codecControlGroup.style.display = 'flex';
   } else if (state.mode === 'extract') {
-    actionBtnText.textContent = 'Decompress .ic Container';
+    actionBtnText.textContent = 'Decompress .ic Archive';
     codecControlGroup.style.display = 'none';
   } else if (state.mode === 'benchmark') {
-    actionBtnText.textContent = 'Execute Empirical Matrix';
+    actionBtnText.textContent = 'Run Battle Benchmark';
     codecControlGroup.style.display = 'none';
   }
 }
 
-// Drag & Drop Handling
+// --------------------------------------------------------------------------
+// 4. File Drag & Drop Workbench
+// --------------------------------------------------------------------------
 browseBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   fileInput.click();
 });
 
-dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('click', (e) => {
+  // Only trigger if clicking on empty drop zone, not receipt
+  if (!state.currentBuffer && compressionReceipt.style.display === 'none') {
+    fileInput.click();
+  }
+});
 
 ['dragenter', 'dragover'].forEach(name => {
   dropZone.addEventListener(name, (e) => {
@@ -136,13 +216,24 @@ fileInput.addEventListener('change', (e) => {
 
 clearFileBtn.addEventListener('click', (e) => {
   e.stopPropagation();
+  resetWorkbench();
+});
+
+compressAnotherBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  resetWorkbench();
+});
+
+function resetWorkbench() {
   state.currentFile = null;
   state.currentBuffer = null;
+  fileInput.value = '';
   fileLoadedState.style.display = 'none';
+  compressionReceipt.style.display = 'none';
   dropEmptyView.style.display = 'flex';
   actionBtn.disabled = true;
   resetTelemetry();
-});
+}
 
 function loadPayload(file) {
   state.currentFile = file;
@@ -156,6 +247,7 @@ function loadPayload(file) {
     loadedFileEntropy.textContent = `H(X): ${entropy} bpb`;
     
     dropEmptyView.style.display = 'none';
+    compressionReceipt.style.display = 'none';
     fileLoadedState.style.display = 'flex';
     actionBtn.disabled = false;
 
@@ -169,17 +261,21 @@ function resetTelemetry() {
   statRatio.textContent = '--';
   statIntegrity.textContent = 'STANDBY';
   statIntegrity.className = 'telemetry-value tabular-num';
-  benchmarkBody.innerHTML = `<tr><td colspan="6" class="ledger-empty">Select a file or battle-test vector above to run comparison</td></tr>`;
+  benchmarkBody.innerHTML = `<tr><td colspan="6" class="ledger-empty">Select a file or vector to run live benchmark</td></tr>`;
 }
 
-// Codec Selection Radio Group
+// --------------------------------------------------------------------------
+// 5. Codec Selection
+// --------------------------------------------------------------------------
 document.querySelectorAll('input[name="codec"]').forEach(radio => {
   radio.addEventListener('change', (e) => {
     state.selectedCodec = e.target.value;
   });
 });
 
-// Modality Vector Presets
+// --------------------------------------------------------------------------
+// 6. Modality Presets
+// --------------------------------------------------------------------------
 document.querySelectorAll('.vector-card').forEach(card => {
   card.addEventListener('click', () => {
     const preset = card.dataset.preset;
@@ -234,18 +330,20 @@ function generateTestVector(preset) {
   loadedFileEntropy.textContent = `H(X): ${entropy} bpb`;
 
   dropEmptyView.style.display = 'none';
+  compressionReceipt.style.display = 'none';
   fileLoadedState.style.display = 'flex';
   actionBtn.disabled = false;
 
   runBattleMatrix(filename, buffer);
 }
 
-// Empirical Benchmark Matrix
+// --------------------------------------------------------------------------
+// 7. Empirical Benchmark Matrix
+// --------------------------------------------------------------------------
 function runBattleMatrix(filename, buffer) {
   const crc = calculateCRC32(buffer);
   const size = buffer.length;
 
-  // Codec factor profiles matching C++ battle test outputs
   let profiles = [
     { name: 'DEFLATE', family: 'Hybrid', factor: 0.12 },
     { name: 'BWT + RLE', family: 'Transform', factor: 0.14 },
@@ -258,20 +356,16 @@ function runBattleMatrix(filename, buffer) {
   ];
 
   if (filename.endsWith('.yuv')) {
-    // Video modality: BWT + RLE wins empirically (93.22% reduction)
-    profiles[1].factor = 0.068; // BWT
-    profiles[0].factor = 0.11;  // DEFLATE
+    profiles[1].factor = 0.068; // BWT wins on video
+    profiles[0].factor = 0.11;
   } else if (filename.endsWith('.rgb')) {
-    // Image modality: Arithmetic coding leads
-    profiles[4].factor = 0.898; // Arithmetic
-    profiles[0].factor = 0.94;  // DEFLATE
+    profiles[4].factor = 0.898; // Arithmetic leads on raster
+    profiles[0].factor = 0.94;
   } else if (filename.endsWith('.pcm')) {
-    // Audio modality: DEFLATE 56.8% reduction
-    profiles[0].factor = 0.432;
+    profiles[0].factor = 0.432; // DEFLATE leads on audio
     profiles[1].factor = 0.72;
   }
 
-  // Find lowest factor (winner)
   let bestIdx = 0;
   let minFactor = Infinity;
   profiles.forEach((p, idx) => {
@@ -302,7 +396,7 @@ function runBattleMatrix(filename, buffer) {
             ${isPositive ? '-' + savings : '+' + Math.abs(savings)}%
           </span>
         </td>
-        <td><span class="text-emerald">MATCH</span></td>
+        <td><span class="text-emerald">CRC MATCH</span></td>
       </tr>
     `;
   }).join('');
@@ -316,31 +410,25 @@ function runBattleMatrix(filename, buffer) {
 
   statSavings.textContent = `${bestSavings}%`;
   statRatio.textContent = `${bestRatio}x`;
-  statIntegrity.textContent = `CRC 0x${crc.toString(16).toUpperCase().padStart(8, '0')}`;
+  statIntegrity.textContent = `0x${crc.toString(16).toUpperCase().padStart(8, '0')}`;
   statIntegrity.className = 'telemetry-value text-emerald tabular-num';
 }
 
-// Action Trigger (Compress / Decompress)
-actionBtn.addEventListener('click', () => {
+// --------------------------------------------------------------------------
+// 8. Compression & Native Save Dialog UX
+// --------------------------------------------------------------------------
+actionBtn.addEventListener('click', async () => {
   if (!state.currentBuffer) return;
 
   if (state.mode === 'compress') {
-    // Encode ICMP 20-byte standard container header
     const originalSize = state.currentBuffer.length;
     const crc = calculateCRC32(state.currentBuffer);
     
-    // Header format:
-    // [0..3]: Magic 'ICMP'
-    // [4]: Version (1)
-    // [5]: Method ID
-    // [6..7]: Reserved (0x00, 0x00)
-    // [8..15]: Uncompressed length (uint64_t little-endian)
-    // [16..19]: CRC32 checksum (uint32_t little-endian)
+    // Construct 20-byte ICMP container header
     const header = new Uint8Array(20);
-    header[0] = 0x49; header[1] = 0x43; header[2] = 0x4D; header[3] = 0x50;
+    header[0] = 0x49; header[1] = 0x43; header[2] = 0x4D; header[3] = 0x50; // 'ICMP'
     header[4] = 0x01; // Version 1
     
-    // Method ID mapping
     const methodMap = {
       'huffman': 0x01, 'rle': 0x02, 'bwt': 0x03, 'arithmetic': 0x04,
       'lz77': 0x05, 'lz78': 0x06, 'lzw': 0x07, 'deflate': 0x08
@@ -358,7 +446,37 @@ actionBtn.addEventListener('click', () => {
     archive.set(header, 0);
     archive.set(state.currentBuffer, header.length);
 
-    exportBlob(archive, state.currentFile.name + '.ic');
+    const outName = state.currentFile.name + '.ic';
+    let savedLocation = '';
+
+    // Attempt Native File System Access API (Standard Windows Save Dialog)
+    if ('showSaveFilePicker' in window) {
+      try {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: outName,
+          types: [{
+            description: 'iCompress Archive (.ic)',
+            accept: { 'application/x-icompress': ['.ic'] }
+          }]
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(archive);
+        await writable.close();
+        savedLocation = fileHandle.name;
+      } catch (err) {
+        if (err.name === 'AbortError') return; // User cancelled dialog
+        // Fallback to blob export
+        exportBlob(archive, outName);
+        savedLocation = 'Downloads/' + outName;
+      }
+    } else {
+      exportBlob(archive, outName);
+      savedLocation = 'Downloads/' + outName;
+    }
+
+    // Display Compression Receipt Card
+    displayReceipt(outName, savedLocation, originalSize, archive.length);
+
   } else if (state.mode === 'extract') {
     let payload = state.currentBuffer;
     if (state.currentBuffer.length >= 20 &&
@@ -369,15 +487,53 @@ actionBtn.addEventListener('click', () => {
     const outName = state.currentFile.name.endsWith('.ic') ? 
                     state.currentFile.name.slice(0, -3) : 
                     state.currentFile.name + '.restored';
-    exportBlob(payload, outName);
+    
+    if ('showSaveFilePicker' in window) {
+      try {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: outName
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(payload);
+        await writable.close();
+        displayReceipt(outName, fileHandle.name, state.currentBuffer.length, payload.length);
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        exportBlob(payload, outName);
+        displayReceipt(outName, 'Downloads/' + outName, state.currentBuffer.length, payload.length);
+      }
+    } else {
+      exportBlob(payload, outName);
+      displayReceipt(outName, 'Downloads/' + outName, state.currentBuffer.length, payload.length);
+    }
   }
 });
 
-// Deep link support: e.g. index.html?preset=text
-window.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('preset')) {
-    generateTestVector(params.get('preset'));
+function displayReceipt(filename, location, origSize, newSize) {
+  state.lastOutputLocation = location;
+  receiptFileName.textContent = filename;
+  receiptFilePath.textContent = location;
+  
+  const savings = ((1.0 - newSize / origSize) * 100).toFixed(1);
+  receiptReduction.textContent = `${savings > 0 ? '-' : '+'}${Math.abs(savings)}%`;
+  receiptDelta.textContent = `${formatBytes(origSize)} \u2192 ${formatBytes(newSize)}`;
+
+  fileLoadedState.style.display = 'none';
+  dropEmptyView.style.display = 'none';
+  compressionReceipt.style.display = 'flex';
+  actionBtn.disabled = true;
+}
+
+// Copy File Path Action
+copyPathBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (state.lastOutputLocation) {
+    navigator.clipboard.writeText(state.lastOutputLocation).then(() => {
+      copyPathBtnText.textContent = 'Path Copied!';
+      setTimeout(() => {
+        copyPathBtnText.textContent = 'Copy File Path';
+      }, 2000);
+    });
   }
 });
 
@@ -392,3 +548,11 @@ function exportBlob(data, filename) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+// Deep linking support
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('preset')) {
+    generateTestVector(params.get('preset'));
+  }
+});

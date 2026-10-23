@@ -2,63 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>iCompress — Lossless Precision Archiver</title>
+  <link rel="icon" type="image/x-icon" href="assets/app.ico">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
+<body oncontextmenu="return false;">
   <div class="app-layout">
-    <!-- Precision Window Header -->
+    <!-- Desktop Native Header -->
     <header class="app-header">
       <div class="brand-group">
         <div class="brand-mark">
-          <img src="assets/logo.svg" alt="iCompress Logo" width="34" height="34">
+          <img src="assets/logo.svg" alt="iCompress" width="30" height="30">
         </div>
         <div class="brand-meta">
           <div class="brand-title">
             <span class="brand-wordmark"><span class="brand-accent">i</span>Compress</span>
             <span class="version-tag">v1.0.0</span>
           </div>
-          <span class="brand-tagline">Lossless Multi-Codec Archiver</span>
+          <span class="brand-tagline">Lossless Precision Archiver</span>
         </div>
       </div>
 
       <div class="engine-telemetry">
         <div class="telemetry-pill">
           <span class="status-indicator"></span>
-          <span class="telemetry-label">C++17 Engine</span>
-          <span class="telemetry-divider">&bull;</span>
-          <span class="telemetry-label">ICMP Container</span>
+          <span class="telemetry-label">Engine Ready</span>
           <span class="telemetry-divider">&bull;</span>
           <span class="telemetry-label text-emerald">CRC32 Verified</span>
         </div>
       </div>
     </header>
 
-    <!-- Main Studio Grid -->
+    <!-- Master Studio Workspace (Full Viewport Flex) -->
     <main class="workbench-grid">
-      <!-- Left Panel: Compression Studio & Controls -->
+      <!-- Left Column: Archive Workbench -->
       <section class="panel workbench-panel">
         <div class="panel-header">
           <h2 class="panel-heading">Archive Workbench</h2>
           <div class="segmented-slider" id="modeSelector" role="tablist">
             <button class="slider-btn active" data-mode="compress" role="tab" aria-selected="true">Compress</button>
             <button class="slider-btn" data-mode="extract" role="tab" aria-selected="false">Decompress</button>
-            <button class="slider-btn" data-mode="benchmark" role="tab" aria-selected="false">Battle Matrix</button>
+            <button class="slider-btn" data-mode="benchmark" role="tab" aria-selected="false">Benchmark</button>
           </div>
         </div>
 
-        <!-- Recessed File Drop Workbench -->
+        <!-- Drop & Status Surface -->
         <div class="recessed-surface drop-surface" id="dropZone" tabindex="0">
-          <input type="file" id="fileInput" class="file-input-hidden" aria-label="Upload payload">
+          <input type="file" id="fileInput" class="file-input-hidden" aria-label="Upload file">
           
+          <!-- State 1: Empty Drop Target -->
           <div class="drop-empty-view" id="dropEmptyView">
             <div class="drop-icon-well">
-              <!-- Authored SVG Drop Icon -->
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="12" y1="18" x2="12" y2="11"></line>
@@ -66,44 +65,85 @@
               </svg>
             </div>
             <div class="drop-instruction">
-              <span class="drop-lead">Drop input payload here</span>
-              <span class="drop-subtext">Supports text, 16-bit PCM wave, RGB raster, YUV frames, and arbitrary binaries</span>
+              <span class="drop-lead">Drop any file here to compress</span>
+              <span class="drop-subtext">or click to browse your files (Ctrl+O)</span>
             </div>
-            <button type="button" class="btn-tertiary" id="browseBtn">Select File</button>
+            <button type="button" class="btn-tertiary" id="browseBtn">Browse Files</button>
           </div>
 
-          <!-- Loaded File Inspector Card -->
+          <!-- State 2: Loaded Source File -->
           <div class="drop-loaded-view" id="fileLoadedState" style="display: none;">
             <div class="payload-card">
               <div class="payload-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                   <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
                   <polyline points="13 2 13 9 20 9"></polyline>
                 </svg>
               </div>
               <div class="payload-details">
-                <span class="payload-name" id="loadedFileName">payload.bin</span>
+                <span class="payload-name" id="loadedFileName">sample.txt</span>
                 <div class="payload-chips">
                   <span class="payload-size" id="loadedFileSize">0 B</span>
                   <span class="chip-separator">&bull;</span>
-                  <span class="payload-entropy" id="loadedFileEntropy">Entropy: 7.82 bpb</span>
+                  <span class="payload-entropy" id="loadedFileEntropy">H(X): 0.00 bpb</span>
                 </div>
               </div>
-              <button type="button" class="btn-clear-payload" id="clearFileBtn" title="Remove file" aria-label="Clear file">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <button type="button" class="btn-clear-payload" id="clearFileBtn" title="Clear file" aria-label="Clear file">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
               </button>
             </div>
           </div>
+
+          <!-- State 3: Compression Receipt Card -->
+          <div class="drop-receipt-view" id="compressionReceipt" style="display: none;">
+            <div class="receipt-header">
+              <div class="receipt-badge-success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Archive Created</span>
+              </div>
+              <span class="receipt-reduction" id="receiptReduction">-88.0%</span>
+            </div>
+            
+            <div class="receipt-body">
+              <div class="receipt-row">
+                <span class="receipt-label">Output Archive</span>
+                <span class="receipt-value select-text" id="receiptFileName">sample.txt.ic</span>
+              </div>
+              <div class="receipt-row">
+                <span class="receipt-label">Location</span>
+                <span class="receipt-path select-text" id="receiptFilePath">Downloads/sample.txt.ic</span>
+              </div>
+              <div class="receipt-row">
+                <span class="receipt-label">Size Delta</span>
+                <span class="receipt-value select-text tabular-num" id="receiptDelta">21.4 KB &rarr; 2.6 KB</span>
+              </div>
+            </div>
+
+            <div class="receipt-actions">
+              <button type="button" class="btn-receipt-action" id="copyPathBtn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span id="copyPathBtnText">Copy File Path</span>
+              </button>
+              <button type="button" class="btn-receipt-action btn-receipt-dim" id="compressAnotherBtn">
+                Compress Another
+              </button>
+            </div>
+          </div>
         </div>
 
-        <!-- Codec Selection Grid with Academic Classification -->
+        <!-- Codec Selection Grid (Customer-Centric Value Propositions) -->
         <div class="codec-workbench" id="codecControlGroup">
           <div class="section-label-row">
-            <span class="section-label">Compression Algorithm</span>
-            <span class="section-hint">8 Canonical Codecs</span>
+            <span class="section-label">Select Algorithm</span>
+            <button type="button" class="btn-text-toggle" id="toggleTechSpecs">Show Specs</button>
           </div>
 
           <div class="codec-selection-grid">
@@ -115,8 +155,8 @@
                   <span class="codec-title">DEFLATE</span>
                   <span class="codec-badge badge-hybrid">HYBRID</span>
                 </div>
-                <span class="codec-formula">LZ77 + Canonical Huffman</span>
-                <span class="codec-complexity">Time: O(N) &bull; Sliding Window 4KB</span>
+                <span class="codec-desc">Best overall compression (Recommended)</span>
+                <span class="codec-tech-spec" style="display: none;">LZ77 4KB Window + Canonical Huffman &bull; O(N)</span>
               </div>
             </label>
 
@@ -128,8 +168,8 @@
                   <span class="codec-title">BWT + RLE</span>
                   <span class="codec-badge badge-transform">TRANSFORM</span>
                 </div>
-                <span class="codec-formula">Burrows-Wheeler + LF Inversion</span>
-                <span class="codec-complexity">Time: O(N log N) &bull; Block 8KB</span>
+                <span class="codec-desc">Maximum reduction for text & docs</span>
+                <span class="codec-tech-spec" style="display: none;">Burrows-Wheeler Permutation + LF Inversion &bull; O(N log N)</span>
               </div>
             </label>
 
@@ -141,8 +181,8 @@
                   <span class="codec-title">LZ77</span>
                   <span class="codec-badge badge-dict">DICTIONARY</span>
                 </div>
-                <span class="codec-formula">Triplets (Offset, Length, Next)</span>
-                <span class="codec-complexity">Time: O(N &bull; W) &bull; 4096B Window</span>
+                <span class="codec-desc">Fast general-purpose compression</span>
+                <span class="codec-tech-spec" style="display: none;">Sliding Window Match Buffer &bull; O(N &bull; W)</span>
               </div>
             </label>
 
@@ -154,12 +194,12 @@
                   <span class="codec-title">LZW</span>
                   <span class="codec-badge badge-dict">DICTIONARY</span>
                 </div>
-                <span class="codec-formula">Variable 12-Bit String Table</span>
-                <span class="codec-complexity">Time: O(N) &bull; Max 4096 Tokens</span>
+                <span class="codec-desc">Balanced dictionary compression</span>
+                <span class="codec-tech-spec" style="display: none;">12-Bit Dynamic Token Table &bull; O(N)</span>
               </div>
             </label>
 
-            <!-- 5. Arithmetic Coding -->
+            <!-- 5. Arithmetic -->
             <label class="codec-card">
               <input type="radio" name="codec" value="arithmetic">
               <div class="codec-content">
@@ -167,12 +207,12 @@
                   <span class="codec-title">Arithmetic</span>
                   <span class="codec-badge badge-entropy">ENTROPY</span>
                 </div>
-                <span class="codec-formula">32-Bit Range Subdivision [L, R)</span>
-                <span class="codec-complexity">Time: O(N) &bull; Shannon Optimal</span>
+                <span class="codec-desc">Optimal for images & sensor data</span>
+                <span class="codec-tech-spec" style="display: none;">32-Bit Range Interval Subdivision &bull; O(N)</span>
               </div>
             </label>
 
-            <!-- 6. Huffman Coding -->
+            <!-- 6. Huffman -->
             <label class="codec-card">
               <input type="radio" name="codec" value="huffman">
               <div class="codec-content">
@@ -180,8 +220,8 @@
                   <span class="codec-title">Huffman</span>
                   <span class="codec-badge badge-entropy">ENTROPY</span>
                 </div>
-                <span class="codec-formula">Min-Heap Prefix Tree Coding</span>
-                <span class="codec-complexity">Time: O(N log &Sigma;) &bull; Canonical Header</span>
+                <span class="codec-desc">Fast prefix entropy encoding</span>
+                <span class="codec-tech-spec" style="display: none;">Optimal Canonical Frequency Tree &bull; O(N log &Sigma;)</span>
               </div>
             </label>
 
@@ -193,8 +233,8 @@
                   <span class="codec-title">LZ78</span>
                   <span class="codec-badge badge-dict">DICTIONARY</span>
                 </div>
-                <span class="codec-formula">Prefix Pairs (Index, Char)</span>
-                <span class="codec-complexity">Time: O(N) &bull; Dynamic Trie</span>
+                <span class="codec-desc">Dynamic prefix tree encoding</span>
+                <span class="codec-tech-spec" style="display: none;">Trie Graph Pointer Pairs &bull; O(N)</span>
               </div>
             </label>
 
@@ -206,8 +246,8 @@
                   <span class="codec-title">RLE</span>
                   <span class="codec-badge badge-entropy">ENTROPY</span>
                 </div>
-                <span class="codec-formula">Run-Length Sequence Encoding</span>
-                <span class="codec-complexity">Time: O(N) &bull; Repetitive Streams</span>
+                <span class="codec-desc">Ultra-fast for repetitive streams</span>
+                <span class="codec-tech-spec" style="display: none;">Consecutive Run-Length Counting &bull; O(N)</span>
               </div>
             </label>
           </div>
@@ -219,16 +259,15 @@
         </button>
       </section>
 
-      <!-- Right Panel: Battle-Test Arena & Entropy Telemetry -->
+      <!-- Right Column: Battle-Test Arena -->
       <section class="panel arena-panel">
         <div class="panel-header">
           <h2 class="panel-heading">Battle-Test Arena</h2>
-          <span class="panel-subcaption">Empirical Modality Benchmark</span>
+          <span class="panel-subcaption">Modality Benchmark</span>
         </div>
 
-        <!-- Modality Test Vectors (Authored 1.5px Hairline SVGs) -->
+        <!-- Instant Test Vectors -->
         <div class="preset-strip">
-          <!-- Text Vector -->
           <button type="button" class="vector-card" data-preset="text">
             <div class="vector-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -239,12 +278,11 @@
               </svg>
             </div>
             <div class="vector-info">
-              <span class="vector-name">Text / Code</span>
-              <span class="vector-spec">16 KB Source</span>
+              <span class="vector-name">Document</span>
+              <span class="vector-spec">Source Code</span>
             </div>
           </button>
 
-          <!-- Audio Vector -->
           <button type="button" class="vector-card" data-preset="audio">
             <div class="vector-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -256,12 +294,11 @@
               </svg>
             </div>
             <div class="vector-info">
-              <span class="vector-name">Audio PCM</span>
-              <span class="vector-spec">16-bit 44.1kHz</span>
+              <span class="vector-name">Audio</span>
+              <span class="vector-spec">PCM Wave</span>
             </div>
           </button>
 
-          <!-- Image Vector -->
           <button type="button" class="vector-card" data-preset="image">
             <div class="vector-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -273,12 +310,11 @@
               </svg>
             </div>
             <div class="vector-info">
-              <span class="vector-name">Image RGB</span>
-              <span class="vector-spec">80x60 24bpp</span>
+              <span class="vector-name">Image</span>
+              <span class="vector-spec">RGB Raster</span>
             </div>
           </button>
 
-          <!-- Video Vector -->
           <button type="button" class="vector-card" data-preset="video">
             <div class="vector-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -296,24 +332,24 @@
               </svg>
             </div>
             <div class="vector-info">
-              <span class="vector-name">Video YUV</span>
-              <span class="vector-spec">4 Temporal Frames</span>
+              <span class="vector-name">Video</span>
+              <span class="vector-spec">YUV Sequence</span>
             </div>
           </button>
         </div>
 
-        <!-- Integrated Entropy Telemetry Bar -->
+        <!-- Telemetry Summary Bar -->
         <div class="telemetry-bar">
           <div class="telemetry-block">
-            <span class="telemetry-title">Space Reduction</span>
+            <span class="telemetry-title">Space Savings</span>
             <span class="telemetry-value tabular-num" id="statSavings">--</span>
           </div>
           <div class="telemetry-block">
-            <span class="telemetry-title">Compression Ratio</span>
+            <span class="telemetry-title">Ratio</span>
             <span class="telemetry-value tabular-num" id="statRatio">--</span>
           </div>
           <div class="telemetry-block">
-            <span class="telemetry-title">Bit-Exact Integrity</span>
+            <span class="telemetry-title">Verification</span>
             <span class="telemetry-value text-emerald tabular-num" id="statIntegrity">STANDBY</span>
           </div>
         </div>
@@ -324,16 +360,16 @@
             <thead>
               <tr>
                 <th>Algorithm</th>
-                <th>Family</th>
+                <th>Type</th>
                 <th>Compressed</th>
                 <th>Ratio</th>
-                <th>Delta</th>
-                <th>Integrity</th>
+                <th>Savings</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody id="benchmarkBody">
               <tr>
-                <td colspan="6" class="ledger-empty">Select a file or battle-test vector above to run comparison</td>
+                <td colspan="6" class="ledger-empty">Select a file or vector to run live benchmark</td>
               </tr>
             </tbody>
           </table>
@@ -341,17 +377,13 @@
       </section>
     </main>
 
-    <!-- System Status Footer -->
+    <!-- Desktop Footer -->
     <footer class="app-footer">
       <div class="footer-left">
-        <span>iCompress Lossless Engine</span>
-        <span class="footer-dot">&bull;</span>
-        <span>Standard C++17 Modular Architecture</span>
-        <span class="footer-dot">&bull;</span>
-        <span>Deterministic Verification</span>
+        <span>iCompress &bull; Lossless Archiver</span>
       </div>
       <div class="footer-right">
-        <span>IEEE 802.3 CRC32 Bit-Exact Guarantee</span>
+        <span>100% Bit-Exact Verification (CRC32)</span>
       </div>
     </footer>
   </div>
