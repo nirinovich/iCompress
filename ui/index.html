@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iCompress — Precision Data Archiver</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="ambient-glow"></div>
+  
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>iCompress</h1>
+          <span class="badge">v1.0.0</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="system-status"><span class="dot"></span> C++17 Core Engine Ready</span>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="main-grid">
+      <!-- Left Panel: Drop & Control -->
+      <section class="card control-card">
+        <div class="card-header">
+          <h2>Archive Studio</h2>
+          <div class="segmented-control" id="modeSelector">
+            <button class="seg-btn active" data-mode="compress">Compress</button>
+            <button class="seg-btn" data-mode="extract">Extract</button>
+            <button class="seg-btn" data-mode="benchmark">Benchmark</button>
+          </div>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" class="file-input">
+          <div class="drop-content">
+            <div class="icon-circle">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <polyline points="9 15 12 12 15 15"></polyline>
+              </svg>
+            </div>
+            <p class="drop-title">Drop your file here to archive</p>
+            <p class="drop-subtitle">Supports Text, Audio (.wav), Images (.bmp), Video (.yuv), and raw binary</p>
+            <button class="btn-secondary" id="browseBtn">Choose File</button>
+          </div>
+          <div class="file-loaded-state" id="fileLoadedState" style="display: none;">
+            <div class="file-meta">
+              <span class="file-name" id="loadedFileName">sample.txt</span>
+              <span class="file-size" id="loadedFileSize">128 KB</span>
+            </div>
+            <button class="btn-clear" id="clearFileBtn">×</button>
+          </div>
+        </div>
+
+        <!-- Codec Selection -->
+        <div class="control-group" id="codecControlGroup">
+          <label class="control-label">Compression Algorithm</label>
+          <div class="codec-grid">
+            <label class="codec-radio">
+              <input type="radio" name="codec" value="deflate" checked>
+              <span class="radio-tile">
+                <span class="tile-name">DEFLATE</span>
+                <span class="tile-desc">LZ77 + Huffman (Auto)</span>
+              </span>
+            </label>
+            <label class="codec-radio">
+              <input type="radio" name="codec" value="bwt">
+              <span class="radio-tile">
+                <span class="tile-name">BWT + RLE</span>
+                <span class="tile-desc">Burrows-Wheeler Transform</span>
+              </span>
+            </label>
+            <label class="codec-radio">
+              <input type="radio" name="codec" value="lz77">
+              <span class="radio-tile">
+                <span class="tile-name">LZ77</span>
+                <span class="tile-desc">Sliding Window Dictionary</span>
+              </span>
+            </label>
+            <label class="codec-radio">
+              <input type="radio" name="codec" value="lzw">
+              <span class="radio-tile">
+                <span class="tile-name">LZW</span>
+                <span class="tile-desc">Lempel-Ziv-Welch</span>
+              </span>
+            </label>
+            <label class="codec-radio">
+              <input type="radio" name="codec" value="arithmetic">
+              <span class="radio-tile">
+                <span class="tile-name">Arithmetic</span>
+                <span class="tile-desc">Range Subdivision</span>
+              </span>
+            </label>
+            <label class="codec-radio">
+              <input type="radio" name="codec" value="huffman">
+              <span class="radio-tile">
+                <span class="tile-name">Huffman</span>
+                <span class="tile-desc">Prefix Entropy Coding</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button class="btn-primary" id="actionBtn" disabled>
+          <span class="btn-text">Compress File</span>
+        </button>
+      </section>
+
+      <!-- Right Panel: Battle Testing & Metrics -->
+      <section class="card metrics-card">
+        <div class="card-header">
+          <h2>Battle-Test Arena</h2>
+          <span class="subhead">Instant Media Benchmarks</span>
+        </div>
+
+        <!-- Media Presets -->
+        <div class="presets-row">
+          <button class="preset-btn" data-preset="text">
+            <span class="preset-icon">📄</span>
+            <span class="preset-label">Text (Code/Doc)</span>
+          </button>
+          <button class="preset-btn" data-preset="audio">
+            <span class="preset-icon">🎵</span>
+            <span class="preset-label">Audio (PCM Wave)</span>
+          </button>
+          <button class="preset-btn" data-preset="image">
+            <span class="preset-icon">🖼️</span>
+            <span class="preset-label">Image (RGB Raster)</span>
+          </button>
+          <button class="preset-btn" data-preset="video">
+            <span class="preset-icon">🎬</span>
+            <span class="preset-label">Video (YUV Frames)</span>
+          </button>
+        </div>
+
+        <!-- Metrics Overview Tiles -->
+        <div class="stats-overview" id="statsOverview">
+          <div class="stat-tile">
+            <span class="stat-label">Space Savings</span>
+            <span class="stat-value" id="statSavings">--</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-label">Compression Ratio</span>
+            <span class="stat-value" id="statRatio">--</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-label">Verification</span>
+            <span class="stat-value text-success" id="statIntegrity">--</span>
+          </div>
+        </div>
+
+        <!-- Benchmark Matrix Table -->
+        <div class="table-container">
+          <table class="benchmark-table" id="benchmarkTable">
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Compressed</th>
+                <th>Savings</th>
+                <th>Ratio</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="benchmarkBody">
+              <tr>
+                <td colspan="5" class="empty-state">Select a file or battle-test preset to view benchmark metrics</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <span>iCompress Archiver &bull; Standard C++17 Lossless Architecture</span>
+      <span>CRC32 Bit-Exact Guarantee</span>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

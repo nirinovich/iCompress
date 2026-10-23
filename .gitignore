@@ -1,0 +1,25 @@
+# Build artifacts
+build/
+bin/
+out/
+*.o
+*.obj
+*.exe
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+
+# Compression test outputs
+*.ic
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
