@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <!-- Background subtle gradient -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181B26"/>
+      <stop offset="100%" stop-color="#0E1017"/>
+    </linearGradient>
+
+    <!-- Titanium specular edge -->
+    <linearGradient id="specular-edge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.3)"/>
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.05)"/>
+    </linearGradient>
+
+    <!-- Electric Cobalt Compression Core -->
+    <linearGradient id="cobalt-core" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#0A84FF"/>
+      <stop offset="100%" stop-color="#0066CC"/>
+    </linearGradient>
+
+    <!-- Titanium Facet Left -->
+    <linearGradient id="facet-left" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+
+    <!-- Titanium Facet Right -->
+    <linearGradient id="facet-right" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Base Rounded Plate -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg-grad)" stroke="url(#specular-edge)" stroke-width="1.2"/>
+
+  <!-- Outer Compression Geometry (Hexagonal Precision Prism) -->
+  <!-- Left Inward Compression Flange -->
+  <path d="M14 20 L24 14 L24 50 L14 44 Z" fill="url(#facet-left)" opacity="0.85"/>
+  
+  <!-- Right Inward Compression Flange -->
+  <path d="M50 20 L40 14 L40 50 L50 44 Z" fill="url(#facet-right)" opacity="0.85"/>
+
+  <!-- Converging Calibration Chevron Top -->
+  <path d="M26 13 L32 9 L38 13 L32 17 Z" fill="#60A5FA" opacity="0.4"/>
+
+  <!-- Converging Calibration Chevron Bottom -->
+  <path d="M26 51 L32 55 L38 51 L32 47 Z" fill="#60A5FA" opacity="0.4"/>
+
+  <!-- The "i" Brand Monogram Core -->
+  <!-- Floating Apex Dot (Faceted Diamond Dot) -->
+  <path d="M32 19 L36.5 23 L32 27 L27.5 23 Z" fill="url(#cobalt-core)"/>
+  
+  <!-- Central High-Density Compression Blade (Stem of "i") -->
+  <path d="M29 30 L35 30 L34 45 L32 47 L30 45 Z" fill="#F8FAFC"/>
+  
+  <!-- Precision Caliper Hairlines (Lossless Bit Grid Accents) -->
+  <line x1="24" y1="23" x2="26" y2="23" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="38" y1="23" x2="40" y2="23" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <line x1="24" y1="36" x2="27" y2="36" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="37" y1="36" x2="40" y2="36" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

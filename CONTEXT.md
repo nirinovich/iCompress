@@ -27,3 +27,15 @@ _Avoid_: Rotation index, shift key
 **Cumulative Range**:
 The normalized probability sub-interval $[L_j, R_j] \subset [0, 1)$ narrowed at each symbol step during arithmetic coding.
 _Avoid_: Fraction window, frequency span
+
+**Entropy Telemetry**:
+The real-time measurement of uncompressed symbol frequency distribution and Shannon entropy compared against compressed output density.
+_Avoid_: Stat box, metric card, numbers widget
+
+**Compression Ratio**:
+The dimensional factor $R = \frac{\text{Raw Size}}{\text{Compressed Size}}$, formatted with fixed tabular precision (e.g., `2.31x`).
+_Avoid_: Scale factor, reduction multiplier
+
+**Bit Density**:
+The average number of bits required to encode each source symbol ($\text{bits/byte}$).
+_Avoid_: Packing rate, density score
