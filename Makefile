@@ -1,4 +1,5 @@
 CXX ?= g++
+RC ?= windres
 CXXFLAGS ?= -std=c++17 -O3 -Wall -Wextra -Iinclude -static -static-libgcc -static-libstdc++
 LDFLAGS ?= 
 
@@ -17,6 +18,7 @@ SRCS = src/crc32.cpp \
        src/benchmark.cpp
 
 OBJS = $(patsubst src/%.cpp, build/%.o, $(SRCS))
+RES_OBJ = build/resources.o
 
 TARGET = bin/icompress.exe
 TARGET_GUI = bin/icompress-gui.exe
@@ -27,17 +29,21 @@ BATTLE_TEST = bin/battle_test.exe
 
 all: $(TARGET) $(TARGET_GUI)
 
+$(RES_OBJ): src/resources.rc
+	@if not exist build mkdir build
+	$(RC) src/resources.rc -O coff -o $@
+
 build/%.o: src/%.cpp
 	@if not exist build mkdir build
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(TARGET): $(OBJS) src/main.cpp
+$(TARGET): $(OBJS) $(RES_OBJ) src/main.cpp
 	@if not exist bin mkdir bin
-	$(CXX) $(CXXFLAGS) src/main.cpp $(OBJS) -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) src/main.cpp $(OBJS) $(RES_OBJ) -o $@ $(LDFLAGS)
 
-$(TARGET_GUI): src/gui_main.cpp
+$(TARGET_GUI): $(RES_OBJ) src/gui_main.cpp
 	@if not exist bin mkdir bin
-	$(CXX) $(CXXFLAGS) -mwindows src/gui_main.cpp -o $@ $(LDFLAGS) -lshell32
+	$(CXX) $(CXXFLAGS) -mwindows src/gui_main.cpp $(RES_OBJ) -o $@ $(LDFLAGS) -lshell32
 
 $(TEST_CODECS): $(OBJS) tests/test_codecs.cpp
 	@if not exist bin mkdir bin

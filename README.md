@@ -56,23 +56,28 @@ Every `.ic` archive encapsulates a 20-byte binary header followed by the compres
 
 ### Prerequisites
 - C++17 compliant compiler (`g++` >= 8, `clang++` >= 7, or MSVC >= 2019)
-- CMake 3.16+ or standard `make`
+- On Windows: MinGW-w64 (included in `C:\mingw64\bin`)
 
-### Build with CMake
-```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
+### Windows One-Click Build
+Run the automated build script (auto-detects MinGW and builds all targets):
+```cmd
+build.bat
 ```
-
-### Build with Make
-```bash
+Or use `make`:
+```cmd
 make
 ```
 
+### Linux / macOS
+```bash
+make all
+```
+
 Binaries will be placed in `bin/`:
-- `bin/icompress` (Main CLI archiver)
-- `bin/test_codecs` (Algorithm verification suite)
-- `bin/battle_test` (Text/Audio/Image/Video benchmark suite)
+- `bin/icompress.exe` (Main CLI archiver)
+- `bin/icompress-gui.exe` (Desktop GUI application)
+- `bin/test_codecs.exe` (Algorithm verification suite)
+- `bin/battle_test.exe` (Text/Audio/Image/Video benchmark suite)
 
 ---
 

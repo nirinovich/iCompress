@@ -102,8 +102,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                             L"--disable-default-apps "
                             L"--app-id=icompress-archiver";
 
-        STARTUPINFOW si = { sizeof(si) };
-        PROCESS_INFORMATION pi = { 0 };
+        STARTUPINFOW si{};
+        si.cb = sizeof(si);
+        PROCESS_INFORMATION pi{};
 
         std::wstring cmdLine = L"\"" + browser + L"\" " + args;
         std::vector<wchar_t> cmdBuffer(cmdLine.begin(), cmdLine.end());

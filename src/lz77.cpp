@@ -14,7 +14,6 @@ std::vector<LZ77Token> LZ77Codec::tokenize(const ByteBuffer& input) const {
 
     while (cursor < n) {
         size_t search_start = (cursor > window_size_) ? cursor - window_size_ : 0;
-        size_t search_len = cursor - search_start;
         size_t max_match_len = std::min(static_cast<size_t>(lookahead_size_), n - cursor);
 
         size_t best_dist = 0;
