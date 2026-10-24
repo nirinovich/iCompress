@@ -48,3 +48,10 @@ add_test(NAME test_codecs COMMAND test_codecs)
 add_executable(battle_test tests/battle_test.cpp)
 target_link_libraries(battle_test PRIVATE icompress_lib)
 add_test(NAME battle_test COMMAND battle_test)
+
+# Installation targets
+install(TARGETS icompress RUNTIME DESTINATION bin)
+if(WIN32)
+    install(TARGETS icompress-gui RUNTIME DESTINATION bin)
+endif()
+

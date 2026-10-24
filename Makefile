@@ -25,7 +25,7 @@ TARGET_GUI = bin/icompress-gui.exe
 TEST_CODECS = bin/test_codecs.exe
 BATTLE_TEST = bin/battle_test.exe
 
-.PHONY: all clean test battle gui
+.PHONY: all clean test battle gui install uninstall
 
 all: $(TARGET) $(TARGET_GUI)
 
@@ -62,3 +62,15 @@ battle: $(BATTLE_TEST)
 clean:
 	@if exist build rmdir /s /q build
 	@if exist bin rmdir /s /q bin
+
+PREFIX ?= /usr/local
+BINDIR ?= $(PREFIX)/bin
+
+install: all
+	@mkdir -p $(DESTDIR)$(BINDIR) 2>nul || mkdir $(DESTDIR)$(BINDIR) 2>nul || true
+	@copy /y bin\icompress.exe "$(DESTDIR)$(BINDIR)\" 2>nul || cp -f $(TARGET) $(DESTDIR)$(BINDIR)/ 2>nul || true
+	@echo Installed to $(DESTDIR)$(BINDIR)
+
+uninstall:
+	@del /f /q "$(DESTDIR)$(BINDIR)\icompress.exe" 2>nul || rm -f $(DESTDIR)$(BINDIR)/icompress 2>nul || true
+
