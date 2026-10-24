@@ -41,7 +41,7 @@ set "FLAGS=-std=c++17 -O3 -Wall -Wextra -Iinclude -static -static-libgcc -static
 
 :: 5. Compile CLI Archiver
 echo [2/5] Building bin\icompress.exe (CLI Archiver)...
-%CXX% %FLAGS% src\main.cpp %COMMON_SRCS% build\resources.o -o bin\icompress.exe
+%CXX% %FLAGS% src\main.cpp %COMMON_SRCS% build\resources.o -o bin\icompress.exe -lshell32 -ladvapi32
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Failed to build bin\icompress.exe
     exit /b 1
@@ -49,7 +49,7 @@ if %ERRORLEVEL% neq 0 (
 
 :: 6. Compile Desktop GUI Application
 echo [3/5] Building bin\icompress-gui.exe (Desktop GUI Application)...
-%CXX% %FLAGS% -mwindows src\gui_main.cpp build\resources.o -o bin\icompress-gui.exe -lshell32
+%CXX% %FLAGS% -mwindows src\gui_main.cpp build\resources.o -o bin\icompress-gui.exe -lshell32 -ladvapi32
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Failed to build bin\icompress-gui.exe
     exit /b 1

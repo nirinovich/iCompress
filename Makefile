@@ -1,7 +1,7 @@
 CXX ?= g++
 RC ?= windres
 CXXFLAGS ?= -std=c++17 -O3 -Wall -Wextra -Iinclude -static -static-libgcc -static-libstdc++
-LDFLAGS ?= 
+LDFLAGS ?= -lshell32 -ladvapi32
 
 SRCS = src/crc32.cpp \
        src/bitstream.cpp \

@@ -88,6 +88,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         else fileUrl += c;
     }
 
+    // Check if an input file was passed via command line (e.g. double click or context menu)
+    int numArgs = 0;
+    LPWSTR* argvW = CommandLineToArgvW(GetCommandLineW(), &numArgs);
+    if (argvW && numArgs > 1) {
+        std::wstring openArg = argvW[1];
+        fileUrl += L"?open=";
+        for (wchar_t c : openArg) {
+            if (c == L'\\') fileUrl += L'/';
+            else if (c == L' ') fileUrl += L"%20";
+            else fileUrl += c;
+        }
+        LocalFree(argvW);
+    }
+
     if (!browser.empty()) {
         // Launch isolated desktop application window with full native app disguise
         std::wstring args = L"--app=\"" + fileUrl + L"\" "

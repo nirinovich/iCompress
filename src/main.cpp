@@ -7,8 +7,77 @@
 #include <sstream>
 #include <chrono>
 #include <cstdlib>
+#include <filesystem>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <shlobj.h>
+#endif
+
+namespace fs = std::filesystem;
 using namespace icompress;
+
+#ifdef _WIN32
+static bool set_reg_str(HKEY root, const std::wstring& subkey, const std::wstring& name, const std::wstring& val) {
+    HKEY hKey;
+    if (RegCreateKeyExW(root, subkey.c_str(), 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE, nullptr, &hKey, nullptr) == ERROR_SUCCESS) {
+        RegSetValueExW(hKey, name.empty() ? nullptr : name.c_str(), 0, REG_SZ, 
+                       reinterpret_cast<const BYTE*>(val.c_str()), static_cast<DWORD>((val.size() + 1) * sizeof(wchar_t)));
+        RegCloseKey(hKey);
+        return true;
+    }
+    return false;
+}
+
+static int do_register_shell() {
+    wchar_t exePath[MAX_PATH];
+    GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+    fs::path binDir = fs::path(exePath).parent_path();
+    fs::path guiPath = binDir / "icompress-gui.exe";
+    if (!fs::exists(guiPath)) {
+        guiPath = fs::path(exePath);
+    }
+
+    std::wstring cliCmd = L"\"" + std::wstring(exePath) + L"\" compress \"%1\"";
+    std::wstring guiCmd = L"\"" + guiPath.wstring() + L"\" \"%1\"";
+    std::wstring iconVal = L"\"" + guiPath.wstring() + L"\",0";
+
+    // 1. Context Menu for all files
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\*\\shell\\iCompress", L"", L"Compress with iCompress");
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\*\\shell\\iCompress", L"Icon", iconVal);
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\*\\shell\\iCompress\\command", L"", cliCmd);
+
+    // 2. Context Menu for directories
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\Directory\\shell\\iCompress", L"", L"Compress with iCompress");
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\Directory\\shell\\iCompress", L"Icon", iconVal);
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\Directory\\shell\\iCompress\\command", L"", cliCmd);
+
+    // 3. File Association for .ic
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\.ic", L"", L"iCompress.Archive");
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\iCompress.Archive", L"", L"iCompress Lossless Archive");
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\iCompress.Archive\\DefaultIcon", L"", iconVal);
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\iCompress.Archive\\shell\\open\\command", L"", guiCmd);
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\iCompress.Archive\\shell\\extract", L"", L"Extract Here");
+    set_reg_str(HKEY_CURRENT_USER, L"Software\\Classes\\iCompress.Archive\\shell\\extract\\command", L"", 
+                L"\"" + std::wstring(exePath) + L"\" extract \"%1\"");
+
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+    std::cout << "[SUCCESS] Registered iCompress in Windows Explorer context menu & .ic file association.\n";
+    std::cout << "          - Right-click any file/folder -> 'Compress with iCompress'\n";
+    std::cout << "          - Double-click any .ic file -> Opens in iCompress Desktop Studio\n";
+    return 0;
+}
+
+static int do_unregister_shell() {
+    RegDeleteTreeW(HKEY_CURRENT_USER, L"Software\\Classes\\*\\shell\\iCompress");
+    RegDeleteTreeW(HKEY_CURRENT_USER, L"Software\\Classes\\Directory\\shell\\iCompress");
+    RegDeleteTreeW(HKEY_CURRENT_USER, L"Software\\Classes\\.ic");
+    RegDeleteTreeW(HKEY_CURRENT_USER, L"Software\\Classes\\iCompress.Archive");
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+    std::cout << "[SUCCESS] Unregistered iCompress Windows Explorer integrations.\n";
+    return 0;
+}
+#endif
 
 static void print_usage(const char* prog) {
     std::cout << "iCompress — High-efficiency lossless data archiver\n\n"
@@ -20,7 +89,9 @@ static void print_usage(const char* prog) {
               << "  list,     -l <file.ic>  Display archive metadata and header details\n"
               << "  test,     -t <file.ic>  Verify archive data integrity (CRC32)\n"
               << "  benchmark,-b <file>     Run battle benchmark across all 8 reference codecs\n"
-              << "  ui,       --gui         Launch the interactive desktop interface\n\n"
+              << "  ui,       --gui         Launch the interactive desktop interface\n"
+              << "  register, --register    Register Windows Explorer context menu & .ic file association\n"
+              << "  unregister, --unregister Remove Windows Explorer integrations\n\n"
               << "Options:\n"
               << "  -o <path>               Output file path\n"
               << "  -m <method>             Algorithm: auto (default), deflate, bwt, arithmetic,\n"
@@ -218,6 +289,22 @@ int main(int argc, char* argv[]) {
     }
     if (cmd == "ui" || cmd == "--gui") {
         return launch_ui();
+    }
+    if (cmd == "register" || cmd == "--register") {
+#ifdef _WIN32
+        return do_register_shell();
+#else
+        std::cout << "Shell registration is supported on Windows.\n";
+        return 0;
+#endif
+    }
+    if (cmd == "unregister" || cmd == "--unregister") {
+#ifdef _WIN32
+        return do_unregister_shell();
+#else
+        std::cout << "Shell unregistration is supported on Windows.\n";
+        return 0;
+#endif
     }
 
     std::string input_path;
