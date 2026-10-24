@@ -20,6 +20,12 @@ out/
 *.swp
 *.swo
 
+# Internal documentation & ADRs
+docs/adr/
+docs/agents/
+.scratch/
+*.original.md
+
 # OS files
 .DS_Store
 Thumbs.db
